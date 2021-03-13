@@ -1,4 +1,4 @@
-import os
+import os, zipfile
 
 
 def removeEmptyFolders(path, removeRoot=True):
@@ -22,12 +22,29 @@ def removeEmptyFolders(path, removeRoot=True):
 
 if __name__ == "__main__":
 	modsDir = "mods" # Watch out with this path, you can accidentally delete everything on your computer with it!
-	removeFilesWithExtension = (".class", ".txt", ".TXT", ".properties", ".info", ".obj", ".dat", ".ogg", ".MF", ".java", ".cfg", ".lang", ".lua", ".")
+	
+	removeFilesWithExtension = (
+		".class", ".txt", ".TXT", ".properties",
+		".info", ".obj", ".dat", ".ogg",
+		".MF", ".java", ".cfg", ".lang",
+		".lua", ".img", ".bin", ".tps",
+		".2", ".3"
+	)
+
+	for filename in os.listdir(modsDir):
+		if filename.endswith((".zip", ".jar")):
+			filePath = os.path.join(modsDir, filename)
+			# print(filePath)
+			with zipfile.ZipFile(filePath, 'r') as zip_ref:
+				zip_ref.extractall(modsDir)
+			os.remove(filePath)
 
 	for root, subdirs, files in os.walk(modsDir):
 		for filename in files:
-			filePath = os.path.join(root, filename) 
-			if filename.endswith(removeFilesWithExtension):
+			filePath = os.path.join(root, filename)
+			_, extension = os.path.splitext(filename)
+			
+			if filename.endswith(removeFilesWithExtension) or extension == "":
 				# print(filePath)
 				os.remove(filePath)
 			else:
