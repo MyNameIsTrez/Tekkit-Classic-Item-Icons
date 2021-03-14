@@ -1,7 +1,7 @@
 import os, zipfile
 
 
-def removeEmptyFolders(path, removeRoot=True):
+def remove_empty_folders(path, remove_root=True):
 	if not os.path.isdir(path):
 		return
 
@@ -11,19 +11,19 @@ def removeEmptyFolders(path, removeRoot=True):
 		for f in files:
 			fullpath = os.path.join(path, f)
 			if os.path.isdir(fullpath):
-				removeEmptyFolders(fullpath)
+				remove_empty_folders(fullpath)
 
 	# If the folder is empty, remove it.
 	files = os.listdir(path)
-	if len(files) == 0 and removeRoot:
+	if len(files) == 0 and remove_root:
 		print("Removing empty folder:", path)
 		os.rmdir(path)
 
 
 if __name__ == "__main__":
-	modsDir = "mods" # Watch out with this path, you can accidentally delete everything on your computer with it!
+	mods_dir = "mods" # Watch out with this path, you can accidentally delete everything on your computer with it!
 	
-	removeFilesWithExtension = (
+	extensions_to_remove = (
 		".class", ".txt", ".TXT", ".properties",
 		".info", ".obj", ".dat", ".ogg",
 		".MF", ".java", ".cfg", ".lang",
@@ -31,24 +31,24 @@ if __name__ == "__main__":
 		".2", ".3"
 	)
 
-	for filename in os.listdir(modsDir):
+	for filename in os.listdir(mods_dir):
 		if filename.endswith((".zip", ".jar")):
-			filePath = os.path.join(modsDir, filename)
-			# print(filePath)
-			with zipfile.ZipFile(filePath, 'r') as zip_ref:
-				zip_ref.extractall(modsDir)
-			os.remove(filePath)
+			file_path = os.path.join(mods_dir, filename)
+			# print(file_path)
+			with zipfile.ZipFile(file_path, 'r') as zip_ref:
+				zip_ref.extractall(mods_dir)
+			os.remove(file_path)
 
-	for root, subdirs, files in os.walk(modsDir):
+	for root, subdirs, files in os.walk(mods_dir):
 		for filename in files:
-			filePath = os.path.join(root, filename)
+			file_path = os.path.join(root, filename)
 			_, extension = os.path.splitext(filename)
 			
-			if filename.endswith(removeFilesWithExtension) or extension == "":
-				# print(filePath)
-				os.remove(filePath)
+			if filename.endswith(extensions_to_remove) or extension == "":
+				# print(file_path)
+				os.remove(file_path)
 			else:
 				if not filename.endswith(".png"):
-					print("File that isn't .png:", filePath)
+					print("File that isn't .png:", file_path)
 
-	removeEmptyFolders(modsDir, removeRoot=False)
+	remove_empty_folders(mods_dir, remove_root=False)
