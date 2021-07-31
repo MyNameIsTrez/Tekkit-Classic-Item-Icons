@@ -23,7 +23,7 @@ def create_icons(old_sprite_sheet_path, subicons_folder_path):
 
 	tiles = [pix[x:x+WIDTH, y:y+HEIGHT] for x in range(0, pix.shape[0], WIDTH) for y in range(0, pix.shape[1], HEIGHT)]
 
-	i = 0
+	i = 1
 	for tile in tiles:
 		image = Image.fromarray(tile)
 
