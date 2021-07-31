@@ -1,5 +1,6 @@
-import os, shutil
+import os, shutil, numpy
 from pathlib import Path
+from PIL import Image
 
 
 def create_sprite_sheet_parent_dir(sprite_sheet_path_parent):
@@ -14,23 +15,40 @@ def create_icons_dir(subicons_folder_path):
 
 
 def create_icons(old_sprite_sheet_path, subicons_folder_path):
+	atlas = Image.open(old_sprite_sheet_path)
+	pix = numpy.array(atlas)
+
+	WIDTH = 16
+	HEIGHT = 16
+
+	tiles = [pix[x:x+WIDTH, y:y+HEIGHT] for x in range(0, pix.shape[0], WIDTH) for y in range(0, pix.shape[1], HEIGHT)]
+
 	i = 0
-	for icon_image in get_icon_images(old_sprite_sheet_path):
-		print(icon_image)
+	for tile in tiles:
+		image = Image.fromarray(tile)
 
 		icon_path = subicons_folder_path / (str(i) + ".png")
-		print(icon_path)
-		
+		image.save(icon_path)
+
 		i += 1
 
 
-def get_icon_images(old_sprite_sheet_path):
-	yield old_sprite_sheet_path
-
+def crop(path, input, height, width, page, area):
+    im = Image.open(input)
+    imgwidth, imgheight = im.size
+    for i in range(0,imgheight,height):
+        for j in range(0,imgwidth,width):
+            box = (j, i, j+width, i+height)
+            a = im.crop(box)
+            try:
+                o = a.crop(area)
+                o.save(os.path.join(path,"PNG","%s" % page,"IMG-%s.png" % k))
+            except:
+                pass
 
 if __name__ == "__main__":
 	mods_dir = "mods" # Watch out with this path, you can accidentally delete everything on your computer with it!
-	icons_dir = "icons"
+	icons_dir = "generated-icons"
 
 	for root, subdirs, png_files in os.walk(mods_dir):
 		for png_filename in png_files:

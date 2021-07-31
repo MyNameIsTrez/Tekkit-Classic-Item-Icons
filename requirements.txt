@@ -1,1 +1,3 @@
-pythreejs
+# pythreejs
+numpy
+pillow
