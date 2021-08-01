@@ -1,6 +1,7 @@
-import os, shutil, numpy
+import os, shutil
 from pathlib import Path
 from PIL import Image
+import numpy as np
 
 
 def create_sprite_sheet_parent_dir(sprite_sheet_path_parent):
@@ -16,7 +17,7 @@ def create_icons_dir(subicons_folder_path):
 
 def create_icons(old_sprite_sheet_path, subicons_folder_path):
 	atlas = Image.open(old_sprite_sheet_path)
-	pix = numpy.array(atlas)
+	pix = np.array(atlas)
 
 	WIDTH = 16
 	HEIGHT = 16
@@ -24,30 +25,47 @@ def create_icons(old_sprite_sheet_path, subicons_folder_path):
 	tiles = [pix[x:x+WIDTH, y:y+HEIGHT] for x in range(0, pix.shape[0], WIDTH) for y in range(0, pix.shape[1], HEIGHT)]
 
 	i = 1
-	for tile in tiles:
-		image = Image.fromarray(tile)
+	for tile in tiles:		
+		if is_valid_image(tile, old_sprite_sheet_path):
+			image = Image.fromarray(tile).convert("RGBA")
 
-		icon_path = subicons_folder_path / (str(i) + ".png")
-		image.save(icon_path)
+			icon_path = subicons_folder_path / (str(i) + ".png")
+			image.save(icon_path, "PNG")
 
-		i += 1
+			i += 1
 
 
-def crop(path, input, height, width, page, area):
-    im = Image.open(input)
-    imgwidth, imgheight = im.size
-    for i in range(0,imgheight,height):
-        for j in range(0,imgwidth,width):
-            box = (j, i, j+width, i+height)
-            a = im.crop(box)
-            try:
-                o = a.crop(area)
-                o.save(os.path.join(path,"PNG","%s" % page,"IMG-%s.png" % k))
-            except:
-                pass
+def is_valid_image(tile, old_sprite_sheet_path):
+	all_alpha_transparent = True
+	all_purple_transparent = True
+
+	if tile.ndim == 2: # If the 16x16 image is indexed.
+		return True
+
+	for row in tile:
+		for pixel in row:
+			if len(pixel) == 3: # If there's no alpha value.
+				all_alpha_transparent = False
+
+				if not np.array_equal(pixel, [214, 127, 255]) and not np.array_equal(pixel, [107, 63, 127]):
+					all_purple_transparent = False
+			else:
+				# Checking alpha value is non-zero.
+				if pixel[3] != 0:
+					all_alpha_transparent = False
+
+				# Checking inner purple color first as it's more common, then checking the outer purple color.
+				if not np.array_equal(pixel, [214, 127, 255, 255]) and not np.array_equal(pixel, [107, 63, 127, 255]):
+					all_purple_transparent = False
+
+	if all_alpha_transparent or all_purple_transparent:
+		return False
+
+	return True
+
 
 if __name__ == "__main__":
-	mods_dir = "mods" # Watch out with this path, you can accidentally delete everything on your computer with it!
+	mods_dir = "mods"
 	icons_dir = "generated-icons"
 
 	for root, subdirs, png_files in os.walk(mods_dir):
